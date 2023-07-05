@@ -70,4 +70,3 @@ unzip grafana-polystat-panel-2.0.9.zip
 mv grafana-polystat-panel ~/grafana-lib/plugins
 docker-compose up -d
 ```
-h
