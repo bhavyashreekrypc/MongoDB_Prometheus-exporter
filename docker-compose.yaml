@@ -1,0 +1,71 @@
+version: "3.6"
+services:
+  mongodb:
+    image: mongo:latest
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - ./data:/data/db
+    networks:
+      mynetwork:
+        ipv4_address: 172.29.0.2
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - '9090:9090'
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    logging:
+      driver: json-file
+    networks:
+      mynetwork:
+        ipv4_address: 172.29.0.3
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    container_name: grafana
+    volumes:
+      - ./grafana.ini:/etc/grafana/grafana.ini
+      - ./grafana-lib:/var/lib/grafana
+      - ./grafana-etc:/etc/grafana
+      - ./grafana-log:/var/log/grafana
+      - ./grafana-polystat:/var/lib/grafana/grafana-polystat-panel
+    logging:
+      driver: json-file
+    networks:
+      mynetwork:
+        ipv4_address: 172.29.0.4
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.30
+    restart: unless-stopped
+    ports:
+      - '9216:9216'
+      - '17001:17001'
+#    environment:
+#      - MONGODB_URI=mongodb://exporter:password@172.29.0.2:27017
+    command:
+      - '--mongodb.uri=mongodb://exporter:password@172.29.0.2:27017'
+      - '--compatible-mode'
+#      - '--collect-all'
+    networks:
+      mynetwork:
+        ipv4_address: 172.29.0.5
+
+
+networks:
+  mynetwork:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.29.0.0/16
